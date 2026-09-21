@@ -115,3 +115,16 @@
 "English" = "English";
 "Updates" = "Updates";
 "Version" = "Version";
+"License" = "License";
+"Activate" = "Activate";
+"Copy binding code" = "Copy binding code";
+"Buy a license" = "Buy a license";
+"Expires %@" = "Expires %@";
+"No expiry" = "No expiry";
+"This installation is activated. %@" = "This installation is activated. %@";
+"The license product is not configured in this build." = "The license product is not configured in this build.";
+"Enter the activation code received after purchase." = "Enter the activation code received after purchase.";
+"This license has expired. Please purchase or activate another license." = "This license has expired. Please purchase or activate another license.";
+"License required" = "License required";
+"Named workspaces require an activated DisplayHarbor license." = "Named workspaces require an activated DisplayHarbor license.";
+"Open License Settings" = "Open License Settings";

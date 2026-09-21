@@ -5,6 +5,10 @@ import QuartzCore
 import Sparkle
 import UniformTypeIdentifiers
 
+private extension Notification.Name {
+    static let displayHarborOpenLicenseSettings = Notification.Name("DisplayHarbor.openLicenseSettings")
+}
+
 private enum L10n {
     private static let languagePreferenceKey = "DisplayHarbor.language"
 
@@ -3204,6 +3208,7 @@ final class EnvironmentManagerViewController: NSViewController {
     }
 
     @objc private func createScenario(_ sender: NSButton) {
+        guard requireLicensedWorkspaceFeature() else { return }
         let parts = (sender.identifier?.rawValue ?? "").split(separator: "\n").map(String.init)
         guard parts.count == 2,
               let environment = store.storedEnvironments.first(where: { $0.key == parts[0] }),
@@ -3230,6 +3235,7 @@ final class EnvironmentManagerViewController: NSViewController {
     }
 
     @objc private func renameScenario(_ sender: NSButton) {
+        guard requireLicensedWorkspaceFeature() else { return }
         let parts = (sender.identifier?.rawValue ?? "").split(separator: "\n").map(String.init)
         guard parts.count == 2,
               let environment = store.storedEnvironments.first(where: { $0.key == parts[0] }),
@@ -3256,6 +3262,7 @@ final class EnvironmentManagerViewController: NSViewController {
     }
 
     @objc private func deleteScenario(_ sender: NSButton) {
+        guard requireLicensedWorkspaceFeature() else { return }
         let parts = (sender.identifier?.rawValue ?? "").split(separator: "\n").map(String.init)
         guard parts.count == 2,
               let environment = store.storedEnvironments.first(where: { $0.key == parts[0] }),
@@ -3287,6 +3294,24 @@ final class EnvironmentManagerViewController: NSViewController {
         alert.informativeText = store.lastPersistenceError ?? L10n.text("Unable to write the rules file.")
         alert.addButton(withTitle: L10n.text("OK"))
         presentAlert(alert) { _ in }
+    }
+
+    private func requireLicensedWorkspaceFeature() -> Bool {
+        guard LicenseManager.shared.isLicensed else {
+            let alert = NSAlert()
+            alert.icon = displayHarborIcon()
+            alert.messageText = L10n.text("License required")
+            alert.informativeText = L10n.text("Named workspaces require an activated DisplayHarbor license.")
+            alert.addButton(withTitle: L10n.text("Open License Settings"))
+            alert.addButton(withTitle: L10n.text("Cancel"))
+            presentAlert(alert) { response in
+                if response == .alertFirstButtonReturn {
+                    NotificationCenter.default.post(name: .displayHarborOpenLicenseSettings, object: nil)
+                }
+            }
+            return false
+        }
+        return true
     }
 
     private func showExitFailure(_ appNames: [String]) {
@@ -3333,9 +3358,17 @@ final class AppSettingsViewController: NSViewController {
     private let versionTitleLabel = NSTextField(labelWithString: "")
     private let versionLabel = NSTextField(labelWithString: "")
     private let languagePopup = NSPopUpButton()
+    private let licenseTitleLabel = NSTextField(labelWithString: "")
+    private let licenseStatusLabel = NSTextField(labelWithString: "")
+    private let licenseDetailLabel = NSTextField(wrappingLabelWithString: "")
+    private let activationField = NSTextField()
+    private let activateButton = NSButton()
+    private let bindingField = NSTextField()
+    private let copyBindingButton = NSButton()
+    private let purchaseButton = NSButton()
 
     override func loadView() {
-        let root = NSView(frame: NSRect(x: 0, y: 0, width: 520, height: 240))
+        let root = NSView(frame: NSRect(x: 0, y: 0, width: 520, height: 470))
         root.wantsLayer = true
         root.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
 
@@ -3358,6 +3391,27 @@ final class AppSettingsViewController: NSViewController {
         versionLabel.stringValue = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
         versionLabel.font = .systemFont(ofSize: 13)
         versionLabel.textColor = .secondaryLabelColor
+
+        licenseTitleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        licenseTitleLabel.textColor = .labelColor
+        licenseStatusLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        licenseDetailLabel.font = .systemFont(ofSize: 12)
+        licenseDetailLabel.textColor = .secondaryLabelColor
+        licenseDetailLabel.maximumNumberOfLines = 0
+        activationField.font = .systemFont(ofSize: 13)
+        activationField.placeholderString = "mbd_act_…"
+        activateButton.target = self
+        activateButton.action = #selector(activateLicense)
+        activateButton.bezelStyle = .rounded
+        copyBindingButton.target = self
+        copyBindingButton.action = #selector(copyBindingCode)
+        copyBindingButton.bezelStyle = .rounded
+        purchaseButton.target = self
+        purchaseButton.action = #selector(openPurchasePage)
+        purchaseButton.bezelStyle = .rounded
+        bindingField.isEditable = false
+        bindingField.isSelectable = true
+        bindingField.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
 
         languagePopup.target = self
         languagePopup.action = #selector(languageChanged(_:))
@@ -3382,7 +3436,28 @@ final class AppSettingsViewController: NSViewController {
         versionTitleLabel.setContentHuggingPriority(.required, for: .horizontal)
         versionTitleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
 
-        let content = NSStackView(views: [titleLabel, languageRow, updateRow, versionRow])
+        let licenseHeader = NSStackView(views: [licenseTitleLabel, licenseStatusLabel])
+        licenseHeader.orientation = .horizontal
+        licenseHeader.alignment = .firstBaseline
+        licenseHeader.spacing = 12
+        let activationRow = NSStackView(views: [activationField, activateButton])
+        activationRow.orientation = .horizontal
+        activationRow.alignment = .centerY
+        activationRow.spacing = 8
+        activationField.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        activationField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        let bindingRow = NSStackView(views: [bindingField, copyBindingButton])
+        bindingRow.orientation = .horizontal
+        bindingRow.alignment = .centerY
+        bindingRow.spacing = 8
+        bindingField.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        bindingField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        let licenseContent = NSStackView(views: [licenseHeader, licenseDetailLabel, activationRow, bindingRow, purchaseButton])
+        licenseContent.orientation = .vertical
+        licenseContent.alignment = .leading
+        licenseContent.spacing = 8
+
+        let content = NSStackView(views: [titleLabel, languageRow, updateRow, versionRow, licenseContent])
         content.orientation = .vertical
         content.alignment = .leading
         content.spacing = 12
@@ -3395,9 +3470,15 @@ final class AppSettingsViewController: NSViewController {
             content.topAnchor.constraint(equalTo: root.topAnchor, constant: 28),
             content.bottomAnchor.constraint(lessThanOrEqualTo: root.bottomAnchor, constant: -28),
             updateRow.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            checkButton.widthAnchor.constraint(equalToConstant: 112)
+            checkButton.widthAnchor.constraint(equalToConstant: 112),
+            licenseContent.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            activationRow.trailingAnchor.constraint(equalTo: licenseContent.trailingAnchor),
+            bindingRow.trailingAnchor.constraint(equalTo: licenseContent.trailingAnchor),
+            activationField.heightAnchor.constraint(equalToConstant: 26),
+            bindingField.heightAnchor.constraint(equalToConstant: 24)
         ])
         view = root
+        LicenseManager.shared.onChange = { [weak self] in self?.refreshLicenseUI() }
         refreshLocalizedText()
     }
 
@@ -3419,12 +3500,36 @@ final class AppSettingsViewController: NSViewController {
         refreshLocalizedText()
     }
 
+    @objc private func activateLicense() {
+        activateButton.isEnabled = false
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await LicenseManager.shared.activate(code: activationField.stringValue)
+            refreshLicenseUI()
+        }
+    }
+
+    @objc private func copyBindingCode() {
+        guard !bindingField.stringValue.isEmpty else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(bindingField.stringValue, forType: .string)
+    }
+
+    @objc private func openPurchasePage() {
+        guard let url = LicenseManager.shared.configuration.purchaseURL else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     private func refreshLocalizedText() {
         titleLabel.stringValue = L10n.text("Application management")
         languageTitleLabel.stringValue = L10n.text("Language")
         updateTitleLabel.stringValue = L10n.text("Updates")
         checkButton.title = L10n.text("Check for updates")
         versionTitleLabel.stringValue = L10n.text("Version")
+        licenseTitleLabel.stringValue = L10n.text("License")
+        activateButton.title = L10n.text("Activate")
+        copyBindingButton.title = L10n.text("Copy binding code")
+        purchaseButton.title = L10n.text("Buy a license")
         languagePopup.removeAllItems()
         languagePopup.addItems(withTitles: [
             L10n.text("Follow System"),
@@ -3433,6 +3538,38 @@ final class AppSettingsViewController: NSViewController {
         ])
         languagePopup.selectItem(at: languagePopupIndex())
         view.window?.title = L10n.text("Application management")
+        refreshLicenseUI()
+    }
+
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        LicenseManager.shared.restore()
+        refreshLicenseUI()
+    }
+
+    private func refreshLicenseUI() {
+        let manager = LicenseManager.shared
+        licenseStatusLabel.stringValue = manager.displayName
+        activationField.stringValue = manager.savedActivationCode()
+        bindingField.stringValue = (try? manager.installationBindingCode()) ?? ""
+        switch manager.status {
+        case .licensed:
+            let expiry = manager.expiryText.map { L10n.text("Expires %@", $0) } ?? L10n.text("No expiry")
+            licenseDetailLabel.stringValue = L10n.text("This installation is activated. %@", expiry)
+        case .notConfigured:
+            licenseDetailLabel.stringValue = L10n.text("The license product is not configured in this build.")
+        case .unlicensed:
+            licenseDetailLabel.stringValue = L10n.text("Enter the activation code received after purchase.")
+        case .expired:
+            licenseDetailLabel.stringValue = L10n.text("This license has expired. Please purchase or activate another license.")
+        case .error(let message):
+            licenseDetailLabel.stringValue = message
+        }
+        let canActivate = manager.configuration.isConfigured
+        activationField.isEnabled = canActivate
+        activateButton.isEnabled = canActivate
+        copyBindingButton.isEnabled = canActivate && !bindingField.stringValue.isEmpty
+        purchaseButton.isHidden = manager.configuration.purchaseURL == nil
     }
 
     private func languagePopupIndex() -> Int {
@@ -3453,7 +3590,7 @@ final class AppSettingsWindowController: NSWindowController {
         let window = NSWindow(contentViewController: AppSettingsViewController())
         window.title = L10n.text("Application management")
         window.styleMask = [.titled, .closable, .miniaturizable]
-        window.setContentSize(NSSize(width: 620, height: 240))
+        window.setContentSize(NSSize(width: 620, height: 470))
         window.isReleasedWhenClosed = false
         super.init(window: window)
     }
@@ -3481,6 +3618,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         NSApp.applicationIconImage = displayHarborIcon()
         _ = UpdateChecker.shared
+        LicenseManager.shared.restore()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openLicenseSettingsNotification),
+            name: .displayHarborOpenLicenseSettings,
+            object: nil
+        )
         store = RuleStore(currentEnvironment: DisplayInfo.currentEnvironment())
         observeApplications()
 
@@ -3621,6 +3765,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsWindowController = controller
         controller.showWindow(nil)
         bringSettingsWindowToFront(controller)
+    }
+
+    @objc private func openLicenseSettingsNotification() {
+        openSettings()
     }
 
     private func bringSettingsWindowToFront(_ controller: AppSettingsWindowController) {

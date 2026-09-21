@@ -7,7 +7,7 @@
     <key>CFBundleExecutable</key>
     <string>DisplayHarbor</string>
     <key>CFBundleIdentifier</key>
-    <string>local.displayharbor.prototype</string>
+    <string>pub.mbd.displayharbor</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon.icns</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -41,5 +41,13 @@
     <false/>
     <key>SUVerifyUpdateBeforeExtraction</key>
     <true/>
+    <key>MBDLicenseAppID</key>
+    <string></string>
+    <key>MBDLicensePublicKey</key>
+    <string></string>
+    <key>MBDLicenseAPIBaseURL</key>
+    <string>https://ai.mbd.pub</string>
+    <key>MBDLicensePurchaseURL</key>
+    <string>https://ai.mbd.pub/market</string>
 </dict>
 </plist>

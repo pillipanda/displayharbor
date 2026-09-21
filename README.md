@@ -87,6 +87,25 @@ open dist/DisplayHarbor.app
 6. Use **Apply Current Workspace** to open unopened apps and restore their saved windows.
 7. Add work apps to **Exit Apps when entering** below the selected workspace's saved App rules.
 
+## Digital license
+
+DisplayHarbor supports Zhuankuai's `mbd-license-v1` software license protocol. Without activation, the default workspace remains available; creating, renaming, or deleting named workspaces requires a valid license.
+
+The first activation stores the installation private key in the macOS Keychain and submits only the installation public key to Zhuankuai. After activation, the device certificate is verified locally, so the app can run offline. Activation codes and certificates are not stored in the layout rules file.
+
+Before a production release, fill the public license configuration in `Resources/Info.plist`:
+
+- `MBDLicenseAppID`: the `app_id` generated for the license product.
+- `MBDLicensePublicKey`: the license product's Ed25519 public key.
+- `MBDLicenseAPIBaseURL`: the license API origin, defaulting to `https://ai.mbd.pub`.
+- `MBDLicensePurchaseURL`: the Zhuankuai license product URL.
+
+For CI builds, the same values can be injected with `DISPLAYHARBOR_LICENSE_APP_ID`, `DISPLAYHARBOR_LICENSE_PUBLIC_KEY`, `DISPLAYHARBOR_LICENSE_API_BASE_URL`, and `DISPLAYHARBOR_LICENSE_PURCHASE_URL` when running `build-app.sh`.
+
+The GitHub Release workflow reads these values from repository Variables. Configure them after the license product has been created and before pushing a production tag.
+
+The public key may be distributed with the app. Never commit the platform signing key, a buyer activation code, or an installation private key.
+
 Exit rules request a normal quit from configured apps when switching into the workspace; they never force-terminate a process. If an app has unsaved content, macOS continues through that app's own save flow. An app cannot have both a saved layout rule and an exit rule in the same workspace.
 
 Rules are stored at:

@@ -33,6 +33,17 @@ app_version="${DISPLAYHARBOR_VERSION:-0.1.1}"
 app_version="${app_version#v}"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $app_version" "$app_dir/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${app_version//./}" "$app_dir/Contents/Info.plist"
+set_plist_if_configured() {
+    local key="$1"
+    local value="$2"
+    if [[ -n "$value" ]]; then
+        /usr/libexec/PlistBuddy -c "Set :$key $value" "$app_dir/Contents/Info.plist"
+    fi
+}
+set_plist_if_configured MBDLicenseAppID "${DISPLAYHARBOR_LICENSE_APP_ID:-}"
+set_plist_if_configured MBDLicensePublicKey "${DISPLAYHARBOR_LICENSE_PUBLIC_KEY:-}"
+set_plist_if_configured MBDLicenseAPIBaseURL "${DISPLAYHARBOR_LICENSE_API_BASE_URL:-}"
+set_plist_if_configured MBDLicensePurchaseURL "${DISPLAYHARBOR_LICENSE_PURCHASE_URL:-}"
 cp "$project_dir/Resources/AppIcon.icns" "$app_dir/Contents/Resources/AppIcon.icns"
 cp -R "$project_dir/Resources/"*.lproj "$app_dir/Contents/Resources/"
 
