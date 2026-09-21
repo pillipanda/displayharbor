@@ -32,7 +32,7 @@
     <key>LSUIElement</key>
     <true/>
     <key>SUFeedURL</key>
-    <string>https://github.com/mitaraifail/displayharbor/releases/latest/download/appcast.xml</string>
+    <string>https://github.com/pillipanda/displayharbor/releases/latest/download/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>TvImqBtonQoWHUOSR/4XisCrFgigEmm1g0+BPeS/AXY=</string>
     <key>SUEnableAutomaticChecks</key>
