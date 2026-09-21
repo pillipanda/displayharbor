@@ -17,6 +17,11 @@ let package = Package(
                 .product(name: "Sparkle", package: "Sparkle")
             ],
             path: "Sources/DisplayHarbor"
+        ),
+        .testTarget(
+            name: "DisplayHarborTests",
+            dependencies: ["DisplayHarbor"],
+            path: "Tests/DisplayHarborTests"
         )
     ]
 )

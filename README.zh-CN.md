@@ -87,6 +87,24 @@ open dist/DisplayHarbor.app
 6. 使用“应用当前情景”打开尚未运行的 App，并恢复已保存窗口。
 7. 在情景下方的“进入情景时退出的 App”区域添加需要在切换时退出的工作 App。
 
+## 数字授权
+
+DisplayHarbor 支持砖块儿 `mbd-license-v1` 软件授权协议。未激活时可以使用默认工作区；新增、重命名和删除命名工作区需要有效授权。
+
+首次激活后，客户端会把安装私钥保存在 macOS 钥匙串中，只向砖块儿提交安装公钥。激活成功后，设备证书在本地验签，软件可以离线运行；激活码和证书不会写入布局规则文件。
+
+正式发布前，在 `Resources/Info.plist` 中填入授权商品生成的公开配置：
+
+- `MBDLicenseAppID`：授权商品的 `app_id`。
+- `MBDLicensePublicKey`：授权商品的 Ed25519 公钥。
+- `MBDLicensePurchaseURL`：砖块儿授权商品购买页地址。
+
+也可以在执行 `build-app.sh` 时通过 `DISPLAYHARBOR_LICENSE_APP_ID`、`DISPLAYHARBOR_LICENSE_PUBLIC_KEY` 和 `DISPLAYHARBOR_LICENSE_PURCHASE_URL` 注入这些值，适合 CI 构建。
+
+GitHub Release 工作流从仓库 Variables 读取同名配置；在授权商品创建完成后，应配置这些 Variables 再推送正式 tag。软件运行时不要求砖块儿在线。
+
+公钥可以随 App 分发；不要把平台签名私钥、买家激活码或设备私钥写入仓库。
+
 退出规则会在切换到对应情景时向已运行的 App 请求正常退出，不会强制终止进程。如果 App 有未保存内容，macOS 仍会按照 App 自身的保存流程处理。一个 App 不能同时拥有当前情景的窗口布局规则和退出规则。
 
 规则保存在：
