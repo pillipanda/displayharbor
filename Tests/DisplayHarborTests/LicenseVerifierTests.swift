@@ -6,16 +6,14 @@ import XCTest
 final class LicenseVerifierTests: XCTestCase {
     func testVerifiesActivationCertificateForConfiguredApp() throws {
         let signingKey = Curve25519.Signing.PrivateKey()
-        let installationKey = Curve25519.Signing.PrivateKey()
         let configuration = LicenseConfiguration(
             appID: "mbd.app.test-displayharbor",
             publicKey: signingKey.publicKey.rawRepresentation.base64URLEncoded,
-            apiBaseURL: URL(string: "https://ai.mbd.pub")!,
             purchaseURL: nil
         )
         let header = #"{"alg":"EdDSA","kid":"test","typ":"JWT"}"#
         let payload = """
-        {"iss":"zhuankuai","aud":"mbd.app.test-displayharbor","protocol":"mbd-license-v1","mode":"activate_offline","plan_code":"pro","plan_name":"Pro","installation_public_key":"\(installationKey.publicKey.rawRepresentation.base64URLEncoded)","iat":1700000000,"exp":4102444800}
+        {"iss":"zhuankuai","aud":"mbd.app.test-displayharbor","protocol":"mbd-license-v1","mode":"offline_signed","plan_code":"pro","plan_name":"Pro","iat":1700000000,"exp":4102444800}
         """
         let encodedHeader = Data(header.utf8).base64URLEncoded
         let encodedPayload = Data(payload.utf8).base64URLEncoded
@@ -24,8 +22,7 @@ final class LicenseVerifierTests: XCTestCase {
 
         let verified = try LicenseVerifier.verify(
             "\(encodedHeader).\(encodedPayload).\(signature)",
-            configuration: configuration,
-            installationPublicKey: installationKey.publicKey.rawRepresentation.base64URLEncoded
+            configuration: configuration
         )
 
         XCTAssertEqual(verified.planCode, "pro")
@@ -37,11 +34,10 @@ final class LicenseVerifierTests: XCTestCase {
         let configuration = LicenseConfiguration(
             appID: "mbd.app.test-displayharbor",
             publicKey: signingKey.publicKey.rawRepresentation.base64URLEncoded,
-            apiBaseURL: URL(string: "https://ai.mbd.pub")!,
             purchaseURL: nil
         )
         let header = #"{"alg":"EdDSA","kid":"test","typ":"JWT"}"#
-        let payload = #"{"iss":"zhuankuai","aud":"mbd.app.other","protocol":"mbd-license-v1","mode":"activate_offline","plan_code":"pro","iat":1700000000,"exp":4102444800}"#
+        let payload = #"{"iss":"zhuankuai","aud":"mbd.app.other","protocol":"mbd-license-v1","mode":"offline_signed","plan_code":"pro","iat":1700000000,"exp":4102444800}"#
         let encodedHeader = Data(header.utf8).base64URLEncoded
         let encodedPayload = Data(payload.utf8).base64URLEncoded
         let input = Data("\(encodedHeader).\(encodedPayload)".utf8)

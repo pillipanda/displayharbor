@@ -97,12 +97,11 @@ DisplayHarbor 支持砖块儿 `mbd-license-v1` 软件授权协议。未激活时
 
 - `MBDLicenseAppID`：授权商品的 `app_id`。
 - `MBDLicensePublicKey`：授权商品的 Ed25519 公钥。
-- `MBDLicenseAPIBaseURL`：授权接口地址，默认是 `https://ai.mbd.pub`。
 - `MBDLicensePurchaseURL`：砖块儿授权商品购买页地址。
 
-也可以在执行 `build-app.sh` 时通过 `DISPLAYHARBOR_LICENSE_APP_ID`、`DISPLAYHARBOR_LICENSE_PUBLIC_KEY`、`DISPLAYHARBOR_LICENSE_API_BASE_URL` 和 `DISPLAYHARBOR_LICENSE_PURCHASE_URL` 注入这些值，适合 CI 构建。
+也可以在执行 `build-app.sh` 时通过 `DISPLAYHARBOR_LICENSE_APP_ID`、`DISPLAYHARBOR_LICENSE_PUBLIC_KEY` 和 `DISPLAYHARBOR_LICENSE_PURCHASE_URL` 注入这些值，适合 CI 构建。
 
-GitHub Release 工作流从仓库 Variables 读取同名配置；在授权商品创建完成后，应配置这些 Variables 再推送正式 tag。
+GitHub Release 工作流从仓库 Variables 读取同名配置；在授权商品创建完成后，应配置这些 Variables 再推送正式 tag。软件运行时不要求砖块儿在线。
 
 公钥可以随 App 分发；不要把平台签名私钥、买家激活码或设备私钥写入仓库。
 

@@ -117,6 +117,7 @@
 "Version" = "版本";
 "License" = "授权";
 "Activate" = "激活";
+"Verify license" = "验证授权";
 "Copy binding code" = "复制绑定码";
 "Buy a license" = "购买授权";
 "Expires %@" = "有效期至 %@";
@@ -124,6 +125,7 @@
 "This installation is activated. %@" = "当前安装已激活。%@";
 "The license product is not configured in this build." = "此构建版本尚未配置授权商品。";
 "Enter the activation code received after purchase." = "请输入购买后获得的激活码。";
+"Paste the license credential received after purchase, then verify it locally." = "请粘贴购买后获得的授权凭证，然后在本地验证。";
 "This license has expired. Please purchase or activate another license." = "授权已过期，请购买或激活新的授权。";
 "License required" = "需要授权";
 "Named workspaces require an activated DisplayHarbor license." = "命名工作区需要激活 DisplayHarbor 授权。";

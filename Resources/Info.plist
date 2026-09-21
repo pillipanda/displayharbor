@@ -45,8 +45,6 @@
     <string></string>
     <key>MBDLicensePublicKey</key>
     <string></string>
-    <key>MBDLicenseAPIBaseURL</key>
-    <string>https://ai.mbd.pub</string>
     <key>MBDLicensePurchaseURL</key>
     <string>https://ai.mbd.pub/market</string>
 </dict>

@@ -42,7 +42,6 @@ set_plist_if_configured() {
 }
 set_plist_if_configured MBDLicenseAppID "${DISPLAYHARBOR_LICENSE_APP_ID:-}"
 set_plist_if_configured MBDLicensePublicKey "${DISPLAYHARBOR_LICENSE_PUBLIC_KEY:-}"
-set_plist_if_configured MBDLicenseAPIBaseURL "${DISPLAYHARBOR_LICENSE_API_BASE_URL:-}"
 set_plist_if_configured MBDLicensePurchaseURL "${DISPLAYHARBOR_LICENSE_PURCHASE_URL:-}"
 cp "$project_dir/Resources/AppIcon.icns" "$app_dir/Contents/Resources/AppIcon.icns"
 cp -R "$project_dir/Resources/"*.lproj "$app_dir/Contents/Resources/"

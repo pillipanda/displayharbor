@@ -5,18 +5,15 @@ import Security
 struct LicenseConfiguration {
     let appID: String
     let publicKey: String
-    let apiBaseURL: URL
     let purchaseURL: URL?
 
     static func fromBundle(_ bundle: Bundle = .main) -> LicenseConfiguration {
         let appID = (bundle.object(forInfoDictionaryKey: "MBDLicenseAppID") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let publicKey = (bundle.object(forInfoDictionaryKey: "MBDLicensePublicKey") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let apiBase = (bundle.object(forInfoDictionaryKey: "MBDLicenseAPIBaseURL") as? String ?? "https://ai.mbd.pub").trimmingCharacters(in: .whitespacesAndNewlines)
         let purchaseURLString = (bundle.object(forInfoDictionaryKey: "MBDLicensePurchaseURL") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         return LicenseConfiguration(
             appID: appID,
             publicKey: publicKey,
-            apiBaseURL: URL(string: apiBase) ?? URL(string: "https://ai.mbd.pub")!,
             purchaseURL: purchaseURLString.isEmpty ? nil : URL(string: purchaseURLString)
         )
     }
@@ -40,25 +37,22 @@ struct VerifiedLicense {
 
 enum LicenseError: LocalizedError {
     case notConfigured
-    case missingActivationCode
+    case missingCredential
     case invalidConfiguration(String)
     case keychain(OSStatus)
     case invalidCredential(String)
-    case activationFailed(String)
 
     var errorDescription: String? {
         switch self {
         case .notConfigured:
             return "授权商品尚未配置"
-        case .missingActivationCode:
-            return "请输入激活码"
+        case .missingCredential:
+            return "请输入授权凭证"
         case .invalidConfiguration(let message):
             return message
         case .keychain(let status):
             return "无法访问 macOS 钥匙串（\(status)）"
         case .invalidCredential(let message):
-            return message
-        case .activationFailed(let message):
             return message
         }
     }
@@ -67,7 +61,6 @@ enum LicenseError: LocalizedError {
 private enum LicenseKeychain {
     static let service = "DisplayHarbor.license"
     static let installationPrivateKey = "installation-private-key"
-    static let activationCode = "activation-code"
     static let certificate = "certificate"
 
     static func read(_ account: String) throws -> Data? {
@@ -140,7 +133,8 @@ enum LicenseVerifier {
         guard claims["iss"] as? String == "zhuankuai",
               claims["aud"] as? String == configuration.appID,
               claims["protocol"] as? String == "mbd-license-v1",
-              claims["mode"] as? String == "activate_offline",
+              let mode = claims["mode"] as? String,
+              ["offline_signed", "activate_offline"].contains(mode),
               let planCode = claims["plan_code"] as? String,
               !planCode.isEmpty
         else {
@@ -152,13 +146,20 @@ enum LicenseVerifier {
             throw LicenseError.invalidCredential("授权已过期")
         }
 
-        guard let boundPublicKey = claims["installation_public_key"] as? String,
-              !boundPublicKey.isEmpty else {
-            throw LicenseError.invalidCredential("设备证书缺少安装绑定")
-        }
-        let localPublicKey = try installationPublicKey ?? InstallationKeyStore.publicKey()
-        guard boundPublicKey == localPublicKey else {
-            throw LicenseError.invalidCredential("授权未绑定当前安装")
+        if mode == "activate_offline" {
+            guard let boundPublicKey = claims["installation_public_key"] as? String,
+                  !boundPublicKey.isEmpty else {
+                throw LicenseError.invalidCredential("设备证书缺少安装绑定")
+            }
+            let localPublicKey = try installationPublicKey ?? InstallationKeyStore.publicKey()
+            guard boundPublicKey == localPublicKey else {
+                throw LicenseError.invalidCredential("授权未绑定当前安装")
+            }
+        } else if let boundPublicKey = claims["installation_public_key"] as? String {
+            let localPublicKey = try installationPublicKey ?? InstallationKeyStore.publicKey()
+            guard boundPublicKey == localPublicKey else {
+                throw LicenseError.invalidCredential("授权未绑定当前安装")
+            }
         }
 
         return VerifiedLicense(claims: claims, jws: jws)
@@ -277,37 +278,13 @@ final class LicenseManager {
         return try InstallationKeyStore.publicKey()
     }
 
-    func activate(code rawCode: String) async {
-        let code = rawCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    func importLicense(_ rawCredential: String) {
+        let credential = rawCredential.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
             guard configuration.isConfigured else { throw LicenseError.notConfigured }
-            guard !code.isEmpty else { throw LicenseError.missingActivationCode }
-            let installationKey = try InstallationKeyStore.publicKey()
-            let endpoint = configuration.apiBaseURL.appendingPathComponent("api/licenses/activate")
-            var request = URLRequest(url: endpoint)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONSerialization.data(withJSONObject: [
-                "activation_code": code,
-                "app_id": configuration.appID,
-                "installation_public_key": installationKey
-            ])
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse else {
-                throw LicenseError.activationFailed("激活服务返回无效响应")
-            }
-            guard (200..<300).contains(http.statusCode) else {
-                let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
-                throw LicenseError.activationFailed(message ?? "激活失败（HTTP \(http.statusCode)）")
-            }
-            guard let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let certificate = payload["certificate"] as? String
-            else { throw LicenseError.activationFailed("激活响应缺少设备证书") }
-
-            let verified = try LicenseVerifier.verify(certificate, configuration: configuration)
-            try LicenseKeychain.write(Data(code.utf8), account: LicenseKeychain.activationCode)
-            try LicenseKeychain.write(Data(certificate.utf8), account: LicenseKeychain.certificate)
+            guard !credential.isEmpty else { throw LicenseError.missingCredential }
+            let verified = try LicenseVerifier.verify(credential, configuration: configuration)
+            try LicenseKeychain.write(Data(credential.utf8), account: LicenseKeychain.certificate)
             status = .licensed(verified)
             lastError = nil
         } catch {
@@ -317,9 +294,9 @@ final class LicenseManager {
         onChange?()
     }
 
-    func savedActivationCode() -> String {
-        guard let codeData = try? LicenseKeychain.read(LicenseKeychain.activationCode),
-              let code = String(data: codeData, encoding: .utf8) else { return "" }
-        return code
+    func savedLicenseCredential() -> String {
+        guard let credentialData = try? LicenseKeychain.read(LicenseKeychain.certificate),
+              let credential = String(data: credentialData, encoding: .utf8) else { return "" }
+        return credential
     }
 }

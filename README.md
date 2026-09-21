@@ -97,12 +97,11 @@ Before a production release, fill the public license configuration in `Resources
 
 - `MBDLicenseAppID`: the `app_id` generated for the license product.
 - `MBDLicensePublicKey`: the license product's Ed25519 public key.
-- `MBDLicenseAPIBaseURL`: the license API origin, defaulting to `https://ai.mbd.pub`.
 - `MBDLicensePurchaseURL`: the Zhuankuai license product URL.
 
-For CI builds, the same values can be injected with `DISPLAYHARBOR_LICENSE_APP_ID`, `DISPLAYHARBOR_LICENSE_PUBLIC_KEY`, `DISPLAYHARBOR_LICENSE_API_BASE_URL`, and `DISPLAYHARBOR_LICENSE_PURCHASE_URL` when running `build-app.sh`.
+For CI builds, the same values can be injected with `DISPLAYHARBOR_LICENSE_APP_ID`, `DISPLAYHARBOR_LICENSE_PUBLIC_KEY`, and `DISPLAYHARBOR_LICENSE_PURCHASE_URL` when running `build-app.sh`.
 
-The GitHub Release workflow reads these values from repository Variables. Configure them after the license product has been created and before pushing a production tag.
+The GitHub Release workflow reads these values from repository Variables. Configure them after the license product has been created and before pushing a production tag. The app does not require Zhuankuai to be reachable while running.
 
 The public key may be distributed with the app. Never commit the platform signing key, a buyer activation code, or an installation private key.
 
