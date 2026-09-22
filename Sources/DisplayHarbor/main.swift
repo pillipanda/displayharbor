@@ -3363,8 +3363,6 @@ final class AppSettingsViewController: NSViewController {
     private let licenseDetailLabel = NSTextField(wrappingLabelWithString: "")
     private let credentialField = NSTextField()
     private let verifyLicenseButton = NSButton()
-    private let bindingField = NSTextField()
-    private let copyBindingButton = NSButton()
     private let purchaseButton = NSButton()
 
     override func loadView() {
@@ -3403,15 +3401,9 @@ final class AppSettingsViewController: NSViewController {
         verifyLicenseButton.target = self
         verifyLicenseButton.action = #selector(verifyLicense)
         verifyLicenseButton.bezelStyle = .rounded
-        copyBindingButton.target = self
-        copyBindingButton.action = #selector(copyBindingCode)
-        copyBindingButton.bezelStyle = .rounded
         purchaseButton.target = self
         purchaseButton.action = #selector(openPurchasePage)
         purchaseButton.bezelStyle = .rounded
-        bindingField.isEditable = false
-        bindingField.isSelectable = true
-        bindingField.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
 
         languagePopup.target = self
         languagePopup.action = #selector(languageChanged(_:))
@@ -3446,13 +3438,7 @@ final class AppSettingsViewController: NSViewController {
         activationRow.spacing = 8
         credentialField.setContentHuggingPriority(.defaultLow, for: .horizontal)
         credentialField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        let bindingRow = NSStackView(views: [bindingField, copyBindingButton])
-        bindingRow.orientation = .horizontal
-        bindingRow.alignment = .centerY
-        bindingRow.spacing = 8
-        bindingField.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        bindingField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        let licenseContent = NSStackView(views: [licenseHeader, licenseDetailLabel, activationRow, bindingRow, purchaseButton])
+        let licenseContent = NSStackView(views: [licenseHeader, licenseDetailLabel, activationRow, purchaseButton])
         licenseContent.orientation = .vertical
         licenseContent.alignment = .leading
         licenseContent.spacing = 8
@@ -3473,9 +3459,7 @@ final class AppSettingsViewController: NSViewController {
             checkButton.widthAnchor.constraint(equalToConstant: 112),
             licenseContent.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             activationRow.trailingAnchor.constraint(equalTo: licenseContent.trailingAnchor),
-            bindingRow.trailingAnchor.constraint(equalTo: licenseContent.trailingAnchor),
             credentialField.heightAnchor.constraint(equalToConstant: 26),
-            bindingField.heightAnchor.constraint(equalToConstant: 24)
         ])
         view = root
         LicenseManager.shared.onChange = { [weak self] in self?.refreshLicenseUI() }
@@ -3506,12 +3490,6 @@ final class AppSettingsViewController: NSViewController {
         refreshLicenseUI()
     }
 
-    @objc private func copyBindingCode() {
-        guard !bindingField.stringValue.isEmpty else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(bindingField.stringValue, forType: .string)
-    }
-
     @objc private func openPurchasePage() {
         guard let url = LicenseManager.shared.configuration.purchaseURL else { return }
         NSWorkspace.shared.open(url)
@@ -3525,7 +3503,6 @@ final class AppSettingsViewController: NSViewController {
         versionTitleLabel.stringValue = L10n.text("Version")
         licenseTitleLabel.stringValue = L10n.text("License")
         verifyLicenseButton.title = L10n.text("Verify license")
-        copyBindingButton.title = L10n.text("Copy binding code")
         purchaseButton.title = L10n.text("Buy a license")
         languagePopup.removeAllItems()
         languagePopup.addItems(withTitles: [
@@ -3548,7 +3525,6 @@ final class AppSettingsViewController: NSViewController {
         let manager = LicenseManager.shared
         licenseStatusLabel.stringValue = manager.displayName
         credentialField.stringValue = manager.savedLicenseCredential()
-        bindingField.stringValue = (try? manager.installationBindingCode()) ?? ""
         switch manager.status {
         case .licensed:
             let expiry = manager.expiryText.map { L10n.text("Expires %@", $0) } ?? L10n.text("No expiry")
@@ -3565,7 +3541,6 @@ final class AppSettingsViewController: NSViewController {
         let canActivate = manager.configuration.isConfigured
         credentialField.isEnabled = canActivate
         verifyLicenseButton.isEnabled = canActivate
-        copyBindingButton.isEnabled = canActivate && !bindingField.stringValue.isEmpty
         purchaseButton.isHidden = manager.configuration.purchaseURL == nil
     }
 
