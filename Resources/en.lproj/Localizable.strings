@@ -42,6 +42,7 @@
 "Not available" = "Waiting for an app window";
 "No standard window recognized" = "No current app window detected";
 "Activate an App with a standard window, then open DisplayHarbor." = "DisplayHarbor automatically detects the app window you clicked most recently. Open an app such as Safari, Notes, or Finder, click its window to bring it to the front, then click DisplayHarbor in the menu bar again.";
+"Authorization could not be saved locally. You may need to enter it again next time." = "Authorization could not be saved locally. You may need to enter it again next time.";
 "Accessibility permission is required for DisplayHarbor to read and move windows." = "Accessibility permission is required for DisplayHarbor to read and move windows.";
 "Open Accessibility Settings" = "Open Accessibility Settings";
 "Not saved" = "Not saved";

@@ -213,6 +213,7 @@ final class LicenseManager {
 
     private(set) var status: Status = .unlicensed
     private(set) var lastError: String?
+    private(set) var persistenceWarning: String?
     var onChange: (() -> Void)?
 
     let configuration: LicenseConfiguration
@@ -248,6 +249,7 @@ final class LicenseManager {
     }
 
     func restore() {
+        persistenceWarning = nil
         guard configuration.isConfigured else {
             status = .notConfigured
             onChange?()
@@ -284,12 +286,20 @@ final class LicenseManager {
             guard configuration.isConfigured else { throw LicenseError.notConfigured }
             guard !credential.isEmpty else { throw LicenseError.missingCredential }
             let verified = try LicenseVerifier.verify(credential, configuration: configuration)
-            try LicenseKeychain.write(Data(credential.utf8), account: LicenseKeychain.certificate)
             status = .licensed(verified)
             lastError = nil
+            do {
+                try LicenseKeychain.write(Data(credential.utf8), account: LicenseKeychain.certificate)
+                persistenceWarning = nil
+            } catch {
+                // A valid authorization should work immediately even when the
+                // macOS keychain is temporarily locked or inaccessible.
+                persistenceWarning = "授权已验证，但暂时无法保存到本机钥匙串；下次启动时可能需要重新输入。"
+            }
         } catch {
             lastError = error.localizedDescription
             status = .error(error.localizedDescription)
+            persistenceWarning = nil
         }
         onChange?()
     }

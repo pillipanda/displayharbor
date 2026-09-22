@@ -44,6 +44,7 @@
 "Not available" = "等待选择应用窗口";
 "No standard window recognized" = "尚未检测到当前应用窗口";
 "Activate an App with a standard window, then open DisplayHarbor." = "DisplayHarbor 会自动识别你最近点击的应用窗口。请先打开一个应用（例如 Safari、备忘录或 Finder），点击它的窗口使其位于最前，然后再次点击菜单栏中的 DisplayHarbor。";
+"Authorization could not be saved locally. You may need to enter it again next time." = "授权已验证，但暂时无法保存到本机钥匙串；下次启动时可能需要重新输入。";
 "Accessibility permission is required for DisplayHarbor to read and move windows." = "需要辅助功能权限，DisplayHarbor 才能读取和移动窗口。";
 "Open Accessibility Settings" = "打开辅助功能设置";
 "Not saved" = "未保存";

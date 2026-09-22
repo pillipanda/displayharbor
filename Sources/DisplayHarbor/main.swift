@@ -3486,8 +3486,12 @@ final class AppSettingsViewController: NSViewController {
 
     @objc private func verifyLicense() {
         verifyLicenseButton.isEnabled = false
-        LicenseManager.shared.importLicense(credentialField.stringValue)
+        let submittedCredential = credentialField.stringValue
+        LicenseManager.shared.importLicense(submittedCredential)
         refreshLicenseUI()
+        if !LicenseManager.shared.isLicensed {
+            credentialField.stringValue = submittedCredential
+        }
     }
 
     @objc private func openPurchasePage() {
@@ -3530,7 +3534,13 @@ final class AppSettingsViewController: NSViewController {
             licenseStatusLabel.textColor = .systemGreen
             licenseDetailLabel.textColor = .systemGreen
             let expiry = manager.expiryText.map { L10n.text("Expires %@", $0) } ?? L10n.text("No expiry")
-            licenseDetailLabel.stringValue = L10n.text("This installation is activated. %@", expiry)
+            if manager.persistenceWarning != nil {
+                let activatedText = L10n.text("This installation is activated. %@", expiry)
+                let persistenceText = L10n.text("Authorization could not be saved locally. You may need to enter it again next time.")
+                licenseDetailLabel.stringValue = "\(activatedText) \(persistenceText)"
+            } else {
+                licenseDetailLabel.stringValue = L10n.text("This installation is activated. %@", expiry)
+            }
         case .notConfigured:
             licenseStatusLabel.textColor = .secondaryLabelColor
             licenseDetailLabel.textColor = .secondaryLabelColor
