@@ -59,7 +59,10 @@ enum LicenseError: LocalizedError {
 }
 
 private enum LicenseKeychain {
-    static let service = "DisplayHarbor.license"
+    // Keep a versioned namespace so items written by older development or
+    // differently signed builds cannot make the shipped app's keychain reads
+    // fail with errSecAuthFailed (-25293).
+    static let service = "DisplayHarbor.license.v2"
     static let installationPrivateKey = "installation-private-key"
     static let certificate = "certificate"
 
@@ -262,8 +265,15 @@ final class LicenseManager {
             status = .licensed(try LicenseVerifier.verify(certificate, configuration: configuration))
             lastError = nil
         } catch {
-            status = (error as? LicenseError)?.localizedDescription == "授权已过期" ? .expired : .error(error.localizedDescription)
-            lastError = error.localizedDescription
+            if case LicenseError.keychain = error {
+                // A stale/inaccessible keychain item must not block the free
+                // product. The user can paste the authorization code again.
+                status = .unlicensed
+                lastError = nil
+            } else {
+                status = (error as? LicenseError)?.localizedDescription == "授权已过期" ? .expired : .error(error.localizedDescription)
+                lastError = error.localizedDescription
+            }
         }
         onChange?()
     }
