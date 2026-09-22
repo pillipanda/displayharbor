@@ -39,9 +39,9 @@
 "Could not request exit for: %@" = "Could not request exit for: %@";
 "Open App" = "Open App";
 "Delete rule" = "Delete rule";
-"Not available" = "Not available";
-"No standard window recognized" = "No standard window recognized";
-"Activate an App with a standard window, then open DisplayHarbor." = "Activate an App with a standard window, then open DisplayHarbor.";
+"Not available" = "Waiting for an app window";
+"No standard window recognized" = "No current app window detected";
+"Activate an App with a standard window, then open DisplayHarbor." = "DisplayHarbor automatically detects the app window you clicked most recently. Open an app such as Safari, Notes, or Finder, click its window to bring it to the front, then click DisplayHarbor in the menu bar again.";
 "Accessibility permission is required for DisplayHarbor to read and move windows." = "Accessibility permission is required for DisplayHarbor to read and move windows.";
 "Open Accessibility Settings" = "Open Accessibility Settings";
 "Not saved" = "Not saved";

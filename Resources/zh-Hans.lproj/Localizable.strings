@@ -41,9 +41,9 @@
 "Could not request exit for: %@" = "无法请求退出：%@";
 "Open App" = "打开 App";
 "Delete rule" = "删除规则";
-"Not available" = "不可用";
-"No standard window recognized" = "没有可识别的标准窗口";
-"Activate an App with a standard window, then open DisplayHarbor." = "请先激活一个有标准窗口的 App，再打开 DisplayHarbor。";
+"Not available" = "等待选择应用窗口";
+"No standard window recognized" = "尚未检测到当前应用窗口";
+"Activate an App with a standard window, then open DisplayHarbor." = "DisplayHarbor 会自动识别你最近点击的应用窗口。请先打开一个应用（例如 Safari、备忘录或 Finder），点击它的窗口使其位于最前，然后再次点击菜单栏中的 DisplayHarbor。";
 "Accessibility permission is required for DisplayHarbor to read and move windows." = "需要辅助功能权限，DisplayHarbor 才能读取和移动窗口。";
 "Open Accessibility Settings" = "打开辅助功能设置";
 "Not saved" = "未保存";
