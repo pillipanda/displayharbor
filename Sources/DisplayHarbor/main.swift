@@ -3527,21 +3527,34 @@ final class AppSettingsViewController: NSViewController {
         credentialField.stringValue = manager.savedLicenseCredential()
         switch manager.status {
         case .licensed:
+            licenseStatusLabel.textColor = .systemGreen
+            licenseDetailLabel.textColor = .systemGreen
             let expiry = manager.expiryText.map { L10n.text("Expires %@", $0) } ?? L10n.text("No expiry")
             licenseDetailLabel.stringValue = L10n.text("This installation is activated. %@", expiry)
         case .notConfigured:
+            licenseStatusLabel.textColor = .secondaryLabelColor
+            licenseDetailLabel.textColor = .secondaryLabelColor
             licenseDetailLabel.stringValue = L10n.text("The license product is not configured in this build.")
         case .unlicensed:
+            licenseStatusLabel.textColor = .labelColor
+            licenseDetailLabel.textColor = .secondaryLabelColor
             licenseDetailLabel.stringValue = L10n.text("Paste the license credential received after purchase, then verify it locally.")
         case .expired:
+            licenseStatusLabel.textColor = .systemRed
+            licenseDetailLabel.textColor = .systemRed
             licenseDetailLabel.stringValue = L10n.text("This license has expired. Please purchase or activate another license.")
         case .error(let message):
+            licenseStatusLabel.textColor = .systemRed
+            licenseDetailLabel.textColor = .systemRed
             licenseDetailLabel.stringValue = message
         }
         let canActivate = manager.configuration.isConfigured
-        credentialField.isEnabled = canActivate
-        verifyLicenseButton.isEnabled = canActivate
-        purchaseButton.isHidden = manager.configuration.purchaseURL == nil
+        let needsLicenseInput = !manager.isLicensed
+        credentialField.isHidden = !needsLicenseInput
+        verifyLicenseButton.isHidden = !needsLicenseInput
+        purchaseButton.isHidden = !needsLicenseInput || manager.configuration.purchaseURL == nil
+        credentialField.isEnabled = canActivate && needsLicenseInput
+        verifyLicenseButton.isEnabled = canActivate && needsLicenseInput
     }
 
     private func languagePopupIndex() -> Int {
