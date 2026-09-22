@@ -5,7 +5,7 @@ project_dir="${0:A:h}"
 cd "$project_dir"
 
 app_dir="$project_dir/dist/DisplayHarbor.app"
-version="${DISPLAYHARBOR_VERSION:-0.1.2}"
+version="${DISPLAYHARBOR_VERSION:-0.1.3}"
 version="${version#v}"
 staging_dir="$project_dir/dist/dmg-root"
 dmg_path="$project_dir/dist/DisplayHarbor-v${version}-macos-arm64.dmg"

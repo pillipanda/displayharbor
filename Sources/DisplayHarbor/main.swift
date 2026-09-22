@@ -3588,6 +3588,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        configureMainMenu()
         NSApp.applicationIconImage = displayHarborIcon()
         _ = UpdateChecker.shared
         LicenseManager.shared.restore()
@@ -3609,6 +3610,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
         popover.animates = true
         popover.contentSize = NSSize(width: 360, height: 400)
+    }
+
+    private func configureMainMenu() {
+        let mainMenu = NSMenu()
+        let applicationMenuItem = NSMenuItem()
+        applicationMenuItem.submenu = NSMenu()
+        mainMenu.addItem(applicationMenuItem)
+
+        let editMenuItem = NSMenuItem()
+        let editMenu = NSMenu(title: L10n.text("Edit"))
+        editMenu.addItem(withTitle: L10n.text("Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(withTitle: L10n.text("Copy"), action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(withTitle: L10n.text("Paste"), action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(withTitle: L10n.text("Select All"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editMenuItem.submenu = editMenu
+        mainMenu.addItem(editMenuItem)
+        NSApp.mainMenu = mainMenu
     }
 
     @objc private func togglePopover(_ sender: Any?) {
