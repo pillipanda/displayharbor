@@ -91,7 +91,7 @@ open dist/DisplayHarbor.app
 
 DisplayHarbor supports Zhuankuai's `mbd-license-v1` software license protocol. Without activation, the default workspace remains available; creating, renaming, or deleting named workspaces requires a valid license.
 
-The first activation stores the installation private key in the macOS Keychain and submits only the installation public key to Zhuankuai. After activation, the device certificate is verified locally, so the app can run offline. Activation codes and certificates are not stored in the layout rules file.
+The current product uses `offline_signed` mode. After purchase, the `license_jws` is verified locally in the client; no Zhuankuai connection or device binding code is required. The license credential is never written to layout rules.
 
 Before a production release, fill the public license configuration in `Resources/Info.plist`:
 

@@ -155,11 +155,6 @@ enum LicenseVerifier {
             guard boundPublicKey == localPublicKey else {
                 throw LicenseError.invalidCredential("授权未绑定当前安装")
             }
-        } else if let boundPublicKey = claims["installation_public_key"] as? String {
-            let localPublicKey = try installationPublicKey ?? InstallationKeyStore.publicKey()
-            guard boundPublicKey == localPublicKey else {
-                throw LicenseError.invalidCredential("授权未绑定当前安装")
-            }
         }
 
         return VerifiedLicense(claims: claims, jws: jws)
@@ -271,11 +266,6 @@ final class LicenseManager {
             lastError = error.localizedDescription
         }
         onChange?()
-    }
-
-    func installationBindingCode() throws -> String {
-        guard configuration.isConfigured else { throw LicenseError.notConfigured }
-        return try InstallationKeyStore.publicKey()
     }
 
     func importLicense(_ rawCredential: String) {
